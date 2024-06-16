@@ -6,6 +6,8 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV COMPOSER_HTACCESS_PROTECT 0
 ENV COMPOSER_NO_INTERACTION 1
 
+ENV NVM_DIR "/root/.nvm"
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -65,7 +67,11 @@ RUN apt-get update && \
         symfony local:server:ca:install && \
         curl -fsSL https://bun.sh/install | bash && \
         echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
-        apt-get clean
+        apt-get clean && \
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
+        source "${NVM_DIR}/nvm.sh" && \
+        nvm install node && \
+        npm install -g bun
 
 FROM base
 
@@ -74,7 +80,7 @@ RUN echo "date.timezone=${TIMEZONE}" >> /usr/local/etc/php/php.ini && \
     echo "memory_limit = 512M;" >> /usr/local/etc/php/php.ini && \
     echo "short_open_tag = Off;" >> /usr/local/etc/php/php.ini
 
-ADD docker/scripts/run_dev.sh /usr/bin/run
+ADD scripts/run_dev.sh /usr/bin/run
 WORKDIR /opt/srv
 
 EXPOSE 8000
